@@ -3,6 +3,7 @@ import { connect } from 'mongoose';
 import { config } from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
+import restaurantRoutes from './routes/restaurantRoutes.js';
 
 import cookieParser from 'cookie-parser';
 
@@ -21,6 +22,8 @@ connect(process.env.MONGO_URI)
   .catch(err => console.error("MongoDB error:", err));
 
 app.use('/api/auth', authRoutes);
+
+app.use('/api/restaurant', restaurantRoutes);
 
 app.get('/', (req,res) => {
   res.send('API is running...');

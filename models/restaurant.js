@@ -1,3 +1,4 @@
+// models/restaurant.js
 import mongoose from 'mongoose';
 
 const restaurantSchema = new mongoose.Schema({
@@ -11,17 +12,19 @@ const restaurantSchema = new mongoose.Schema({
     required: true
   },
   description: {
-    type: String
+    type: String,
+    required: true
   },
   address: {
-    type: String
+    type: String,
+    required: true
   },
   lat: {
-    type: Number,
+    type: String,
     required: true
   },
   lng: {
-    type: Number,
+    type: String,
     required: true
   },
   averageRating: {
@@ -34,10 +37,12 @@ const restaurantSchema = new mongoose.Schema({
   },
   isApproved: {
     type: Boolean,
+    required: true,
     default: false
   },
   images: {
-    type: [String], // Array of image URLs from Cloudinary
+    type: [String],
+    required: true,
     default: []
   },
   createdAt: {
