@@ -31,6 +31,11 @@ export const createRestaurant = async (req, res) => {
     res.status(201).json({ message: 'Restaurant created successfully', restaurant });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Error creating restaurant' });
+    console.error(err); // log full error internally
+res.status(500).json({
+  message: 'Error creating restaurant',
+  error: err.message || 'Internal Server Error',
+});
+
   }
 };
