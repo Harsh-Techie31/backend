@@ -1,6 +1,7 @@
 // controllers/restaurantController.js
 import Restaurant from '../models/restaurant.js';
 import mongoose from 'mongoose';
+import User from '../models/user.js'
 
 export const createRestaurant = async (req, res) => {
   try {
@@ -15,6 +16,12 @@ export const createRestaurant = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'At least one image is required' });
     }
+
+    const owner = await User.findById(ownerId);
+    if (!owner) {
+      return res.status(404).json({ message: 'Owner not found' });
+    }
+    if(owner.role == "customer")return res.status(404).json({ message: 'Customer cannot create restaurant' });
 
     const imageUrls = req.files.map(file => file.path);
 
