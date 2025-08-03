@@ -5,8 +5,8 @@ import User from '../models/user.js'
 
 export const createRestaurant = async (req, res) => {
   try {
-    const { name, description, address, lat, lng, ownerId } = req.body;
-
+    const { name, description, address, lat, lng } = req.body;
+    const ownerId = req.user.id;
     // Validate required text fields
     if (!name || !description || !address || !lat || !lng || !ownerId) {
       return res.status(400).json({ message: 'Missing required fields' });
