@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/authRoutes.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
+import menuCatRoutes from './routes/menucaterogyRoute.js';
 
 import cookieParser from 'cookie-parser';
 
@@ -24,6 +25,7 @@ connect(process.env.MONGO_URI)
 app.use('/api/auth', authRoutes);
 
 app.use('/api/restaurant', restaurantRoutes);
+app.use('/api/menucat', menuCatRoutes);
 
 app.get('/', (req,res) => {
   res.send('API is running...');

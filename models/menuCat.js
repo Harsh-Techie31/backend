@@ -11,7 +11,7 @@ const menuCategorySchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  postion: {
+  position: {
     type: Number,
     required: true
   },
@@ -21,5 +21,5 @@ const menuCategorySchema = new mongoose.Schema({
   }
 });
 
-const Restaurant = mongoose.model('Restaurant', menuCategorySchema);
-export default Restaurant;
+const MenuCat = mongoose.model('Menu Category', menuCategorySchema);
+export default MenuCat;
