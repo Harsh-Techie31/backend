@@ -9,7 +9,8 @@ const restaurantSchema = new mongoose.Schema({
   },
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   description: {
     type: String,
@@ -20,35 +21,29 @@ const restaurantSchema = new mongoose.Schema({
     required: true
   },
   lat: {
-    type: String,
+    type: Number,
     required: true
   },
   lng: {
-    type: String,
+    type: Number,
     required: true
   },
   averageRating: {
     type: Number,
-    default: 0
-  },
-  noOfRatings: {
-    type: Number,
-    default: 0
+    default: 0,
+    min: 0,
+    max: 5
   },
   isApproved: {
     type: Boolean,
-    required: true,
     default: false
   },
   images: {
     type: [String],
-    required: true,
     default: []
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 const Restaurant = mongoose.model('Restaurant', restaurantSchema);

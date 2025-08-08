@@ -13,14 +13,7 @@ const generateToken = (user) => {
   );
 };
 
-const setTokenCookie = (res, token) => {
-  res.cookie('jwt', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // only over HTTPS in production
-    sameSite: 'Strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  });
-};
+// Token generation function remains the same
 
 export const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -36,11 +29,11 @@ export const registerUser = async (req, res) => {
     //console.log(salt,data,hashedPassword)
     const user = await User.create({ name, email, password: hashedPassword, role });
     const token = generateToken(user);
-    setTokenCookie(res, token);
 
     res.status(201).json({
       message: 'User registered',
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      token
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -52,20 +45,80 @@ export const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'User doent exist' });
+      return res.status(401).json({ message: 'User doesn\'t exist' });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid password' });
 
-
     const token = generateToken(user);
-    setTokenCookie(res, token);
 
     res.status(200).json({
       message: 'Login successful',
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
+      token
     });
   } catch (e) {
     res.status(500).json({ error: e.message });
+  }
+};
+
+// Logout user (client-side token removal)
+export const logoutUser = async (req, res) => {
+  try {
+    res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Get user profile
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Update user profile
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (email && email !== user.email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+    }
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (phone !== undefined) updateData.phone = phone;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };

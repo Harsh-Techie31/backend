@@ -1,11 +1,22 @@
 import express from 'express';
-//import parser from '../utils/multer.js';
-//import { protect } from '../middleware/authMiddleware.js';
-import { createMenuCategory } from '../controllers/menuCatController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+import { 
+  createMenuCategory,
+  getMenuCategories,
+  getMenuCategoryById,
+  updateMenuCategory,
+  deleteMenuCategory
+} from '../controllers/menuCatController.js';
 
 const router = express.Router();
 
-// POST /restaurants
-router.post('/create', createMenuCategory);
+// Public routes
+router.get('/restaurant/:restaurantId', getMenuCategories);
+router.get('/:id', getMenuCategoryById);
+
+// Protected routes
+router.post('/create', protect, createMenuCategory);
+router.put('/:id', protect, updateMenuCategory);
+router.delete('/:id', protect, deleteMenuCategory);
 
 export default router;

@@ -1,25 +1,25 @@
-// models/restaurant.js
+// models/menuCat.js
 import mongoose from 'mongoose';
 
 const menuCategorySchema = new mongoose.Schema({
-  restaurantID: {
+  restaurantId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'Restaurant'
   },
   name: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   position: {
     type: Number,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+    required: true,
+    min: 1
   }
+}, {
+  timestamps: true
 });
 
-const MenuCat = mongoose.model('Menu Category', menuCategorySchema);
-export default MenuCat;
+const MenuCategory = mongoose.model('MenuCategory', menuCategorySchema);
+export default MenuCategory;
