@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { requireAuth, authorize } from '../middleware/authMiddleware.js';
 import { 
   getAdminLogs,
   getDashboardStats,
@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 // All admin routes require admin role
-router.use(protect);
+router.use(requireAuth);
 router.use(authorize('ADMIN'));
 
 router.get('/logs', getAdminLogs);

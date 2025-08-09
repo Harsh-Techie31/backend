@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { requireAuth, authorize } from '../middleware/authMiddleware.js';
 import { 
   createOrder,
   getUserOrders,
@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 // All order routes require authentication
-router.use(protect);
+router.use(requireAuth);
 
 // Customer routes
 router.post('/create', createOrder);

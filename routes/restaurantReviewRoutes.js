@@ -1,6 +1,6 @@
 import express from 'express';
 import parser from '../utils/multer.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 import { 
   createRestaurantReview,
   getRestaurantReviews,
@@ -16,10 +16,10 @@ const router = express.Router();
 router.get('/restaurant/:restaurantId', getRestaurantReviews);
 router.get('/:id', getReviewById);
 
-// Protected routes
-router.post('/create', protect, parser.array('images'), createRestaurantReview);
-router.put('/:id', protect, parser.array('images'), updateRestaurantReview);
-router.delete('/:id', protect, deleteRestaurantReview);
-router.get('/user/my-reviews', protect, getUserRestaurantReviews);
+// requireAuthed routes
+router.post('/create', requireAuth, parser.array('images'), createRestaurantReview);
+router.put('/:id', requireAuth, parser.array('images'), updateRestaurantReview);
+router.delete('/:id', requireAuth, deleteRestaurantReview);
+router.get('/user/my-reviews', requireAuth, getUserRestaurantReviews);
 
 export default router; 

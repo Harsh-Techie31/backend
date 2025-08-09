@@ -1,6 +1,6 @@
 import express from 'express';
 import parser from '../utils/multer.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { requireAuth, authorize } from '../middleware/authMiddleware.js';
 import { 
   createRestaurant,
   getRestaurants,
@@ -17,13 +17,13 @@ const router = express.Router();
 router.get('/', getRestaurants);
 router.get('/:id', getRestaurantById);
 
-// Protected routes
-router.post('/create', protect, authorize('OWNER', 'ADMIN'), parser.array('images'), createRestaurant);
-router.put('/:id', protect, parser.array('images'), updateRestaurant);
-router.delete('/:id', protect, deleteRestaurant);
-router.get('/owner/my-restaurants', protect, authorize('OWNER'), getRestaurantsByOwner);
+// requireAuthed routes
+router.post('/create', requireAuth, authorize('OWNER', 'ADMIN'), parser.array('images'), createRestaurant);
+router.put('/:id', requireAuth, parser.array('images'), updateRestaurant);
+router.delete('/:id', requireAuth, deleteRestaurant);
+router.get('/owner/my-restaurants', requireAuth, authorize('OWNER'), getRestaurantsByOwner);
 
 // Admin only routes
-router.put('/:id/approval', protect, authorize('ADMIN'), updateRestaurantApproval);
+router.put('/:id/approval', requireAuth, authorize('ADMIN'), updateRestaurantApproval);
 
 export default router;

@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect } from '../middleware/authMiddleware.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 import { 
   getOrCreateCart,
   addToCart,
@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 // All cart routes require authentication
-router.use(protect);
+router.use(requireAuth);
 
 router.get('/restaurant/:restaurantId', getOrCreateCart);
 router.post('/add', addToCart);

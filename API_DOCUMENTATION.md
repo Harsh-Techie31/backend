@@ -6,7 +6,7 @@ http://localhost:5000/api
 ```
 
 ## Authentication
-All protected routes require a Bearer token in the Authorization header:
+All requireAuthed routes require a Bearer token in the Authorization header:
 ```
 Authorization: Bearer <your_jwt_token>
 ```

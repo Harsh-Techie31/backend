@@ -1,5 +1,5 @@
 import express from 'express';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { requireAuth, authorize } from '../middleware/authMiddleware.js';
 import { 
   createMenuCategory,
   getMenuCategories,
@@ -14,9 +14,9 @@ const router = express.Router();
 router.get('/restaurant/:restaurantId', getMenuCategories);
 router.get('/:id', getMenuCategoryById);
 
-// Protected routes
-router.post('/create', protect, createMenuCategory);
-router.put('/:id', protect, updateMenuCategory);
-router.delete('/:id', protect, deleteMenuCategory);
+// requireAuthed routes
+router.post('/create', requireAuth, createMenuCategory);
+router.put('/:id', requireAuth, updateMenuCategory);
+router.delete('/:id', requireAuth, deleteMenuCategory);
 
 export default router;
