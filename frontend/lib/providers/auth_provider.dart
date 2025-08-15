@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
-import '../models/auth_response_model.dart';
 import '../core/constants/app_constants.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
