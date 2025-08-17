@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/services/restaurant_api_service.dart';
 import '../services/api_service.dart';
 
 // Provider for API Service
@@ -6,3 +7,7 @@ import '../services/api_service.dart';
 final apiServiceProvider = Provider<ApiService>((ref) {
   return ApiService();
 }); 
+
+final restaurantApiServiceProvider = Provider<RestaurantApiService>((ref) {
+  return RestaurantApiService();
+});

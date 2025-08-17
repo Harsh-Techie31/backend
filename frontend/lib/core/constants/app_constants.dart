@@ -4,6 +4,7 @@ class AppConstants {
   static const String authEndpoint = '/auth';
   static const String registerEndpoint = '/register';
   static const String loginEndpoint = '/login';
+  static const String restaurantEndpoint = '/restaurant';
   
   // Storage Keys
   static const String tokenKey = 'auth_token';
