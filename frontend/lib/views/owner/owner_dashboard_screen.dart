@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/providers.dart';
@@ -178,6 +180,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow('Name', user?.name ?? 'N/A'),
+                  _buildInfoRow('Restaurants', user?.name ?? 'N/A'),
                   _buildInfoRow('Email', user?.email ?? 'N/A'),
                   _buildInfoRow('Phone', user?.phone ?? 'Not provided'),
                   _buildInfoRow('Role', user?.role ?? 'N/A'),
@@ -286,13 +289,15 @@ class OwnerDashboardScreen extends ConsumerWidget {
   }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    log("reached here");
     final authNotifier = ref.read(authProvider.notifier);
     await authNotifier.logout();
-    
+    log("reached here1");
     if (context.mounted) {
       final authState = ref.read(authProvider);
       CustomSnackBar.showSuccess(context, authState.successMessage!);
       Navigator.pushReplacementNamed(context, '/login');
     }
+    log("reached here2");
   }
 } 

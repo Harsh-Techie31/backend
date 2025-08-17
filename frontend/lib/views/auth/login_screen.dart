@@ -201,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 40),
                 
                 // Role Selection Info
-                Container(
+                /*Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: AppColors.info.withOpacity(0.1),
@@ -236,7 +236,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                     ],
                   ),
-                ),
+                ),*/
               ],
             ),
           ),

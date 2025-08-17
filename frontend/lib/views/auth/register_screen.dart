@@ -99,19 +99,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.only(left :24.0,right:24 , bottom : 24 , top : 12),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                //const SizedBox(height: 20),
                 
                 // App Logo/Title
                 Column(
                   children: [
                     Icon(
-                      Icons.restaurant,
+                      Icons.local_restaurant_outlined,
                       size: 60,
                       color: AppColors.primary,
                     ),
