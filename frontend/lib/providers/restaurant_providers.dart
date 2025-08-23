@@ -94,6 +94,44 @@ class RestaurantNotifier extends StateNotifier<RestaurantState> {
   }
 
 
+  Future<void> editRestaurant({
+  required String id,
+  String? name,
+  String? description,
+  String? address,
+  double? lat,
+  double? lng,
+  List<File>? images,
+}) async {
+  state = state.copyWith(isLoading: true, errorMessage: null);
+
+  try {
+    final updatedRestaurant = await _resApiService.updateRestaurant(
+      id: id,
+      name: name,
+      description: description,
+      address: address,
+      lat: lat,
+      lng: lng,
+      images: images,
+    );
+
+    // Update the local list
+    final updatedList = state.restaurants.map((res) {
+      return res.id == id ? updatedRestaurant : res;
+    }).toList();
+
+    state = state.copyWith(restaurants: updatedList, isLoading: false);
+  } catch (e) {
+    state = state.copyWith(
+      isLoading: false,
+      errorMessage: e.toString().replaceAll('Exception: ', ''),
+    );
+  }
+}
+
+
+
 
 
 }
