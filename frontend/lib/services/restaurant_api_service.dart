@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:frontend/models/restaurant_model.dart';
 import 'package:http/http.dart' as http;
@@ -55,14 +56,64 @@ class RestaurantApiService {
     }
   } catch (e) {
     throw Exception('Fetching restaurants failed: ${e.toString()}');
+  }}
+
+
+
+
+  Future<Restaurant> addNewRestaurant({
+    required String name,
+    required String description,
+    required String address,
+    required double lat,
+    required double lng,
+    required List<File> images,
+  }) async {
+    if (_authToken == null) throw Exception("Auth token not set");
+
+    final uri = Uri.parse('$_baseUrl${AppConstants.restaurantEndpoint}/create');
+    log("[log] URL : $uri");
+    var request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $_authToken'
+      ..fields['name'] = name
+      ..fields['description'] = description
+      ..fields['address'] = address
+      ..fields['lat'] = lat.toString()
+      ..fields['lng'] = lng.toString();
+
+    // Attach images
+    for (var image in images) {
+      var stream = http.ByteStream(image.openRead());
+      var length = await image.length();
+      var multipartFile = http.MultipartFile(
+        'images', // key as expected by backend
+        stream,
+        length,
+        filename: image.path.split('/').last,
+      );
+      request.files.add(multipartFile);
+    }
+
+    try {
+      final response = await request.send();
+      final respStr = await response.stream.bytesToString();
+      log("RAW RESPONSE: $respStr");
+      final body = json.decode(respStr);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return Restaurant.fromJson(body['restaurant']);
+      } else {
+        throw Exception(body['message'] ?? 'Failed to create restaurant');
+      }
+    } catch (e) {
+      throw Exception('Add restaurant failed: $e');
+    }
   }
-}
 
 
 
 
-
-
+  
 
 
 

@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/restaurant_model.dart';
@@ -38,6 +41,7 @@ class RestaurantNotifier extends StateNotifier<RestaurantState> {
   RestaurantNotifier(this._resApiService , this._storageService) : super(const RestaurantState());
    Future<void> initialize() async {
     final token = _storageService.getToken();
+    log("[log] token ${token }");
     _resApiService.setAuthToken(token!);
     await getOwnerRestaurants();
   }
@@ -47,13 +51,48 @@ class RestaurantNotifier extends StateNotifier<RestaurantState> {
 
     try {
       final restaurantss = await _resApiService.getRestaurantsByOwner();
-      state = state.copyWith(restaurants: restaurantss);
+      state = state.copyWith(restaurants: restaurantss,isLoading: false);
+      
     } catch (e) {
-      state = state.copyWith(
+      state = state.copyWith(isLoading: false,
         errorMessage: e.toString().replaceAll('Exception: ', ''),
       );
     }
   }
+
+  //View-model calls to the api to add new restaurant
+  Future<void> addRestaurant({
+    required String name,
+    required String description,
+    required String address,
+    required double lat,
+    required double lng,
+    required List<File> images,
+  }) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    try {
+      // Call your API function
+      final newRestaurant = await _resApiService.addNewRestaurant(
+        name: name,
+        description: description,
+        address: address,
+        lat: lat,
+        lng: lng,
+        images: images,
+      );
+
+      // Optimistically update the list
+      final updatedList = List<Restaurant>.from(state.restaurants)..add(newRestaurant);
+      state = state.copyWith(restaurants: updatedList, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: e.toString().replaceAll('Exception: ', ''),
+      );
+    }
+  }
+
 
 
 

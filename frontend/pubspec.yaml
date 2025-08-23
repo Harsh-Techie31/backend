@@ -37,6 +37,7 @@ dependencies:
   
   # State Management - Riverpod
   flutter_riverpod: ^2.4.9
+  image_picker: ^1.2.0
   
   # HTTP & API
   http: ^1.1.0
