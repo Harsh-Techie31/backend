@@ -66,6 +66,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
   }
+  //TODO: remove this function later on 
+  // String getToken(){
+  //   final token = _storageService.getToken();
+  //   return token! ;
+  // }
 
   // Register user
   Future<bool> register({

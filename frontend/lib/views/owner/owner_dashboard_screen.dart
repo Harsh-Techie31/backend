@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/models/restaurant_model.dart';
+import 'package:frontend/providers/restaurant_providers.dart';
 import '../../providers/providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
@@ -15,8 +17,9 @@ class OwnerDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch the auth state to get user information
     final authState = ref.watch(authProvider);
+    final resState = ref.watch(restaurantProvider);
     final user = authState.currentUser;
-    
+    final List<Restaurant> res = resState.restaurants;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -124,7 +127,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   'Add or edit your restaurant details',
                   Icons.store,
                   AppColors.primary,
-                  () => _showComingSoon(context),
+                  () => _showComingSoon1(context,ref),
                 ),
                 _buildActionCard(
                   context,
@@ -180,7 +183,7 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow('Name', user?.name ?? 'N/A'),
-                  _buildInfoRow('Restaurants', user?.name ?? 'N/A'),
+                  _buildInfoRow('Restaurants', res.length.toString() ),
                   _buildInfoRow('Email', user?.email ?? 'N/A'),
                   _buildInfoRow('Phone', user?.phone ?? 'Not provided'),
                   _buildInfoRow('Role', user?.role ?? 'N/A'),
@@ -282,6 +285,17 @@ class OwnerDashboardScreen extends ConsumerWidget {
   }
 
   void _showComingSoon(BuildContext context) {
+    
+    CustomSnackBar.showInfo(
+      context,
+      'This feature is coming soon! Stay tuned for updates.',
+    );
+  }
+
+  void _showComingSoon1(BuildContext context, WidgetRef ref) async{
+    final authNotifier = ref.read(authProvider.notifier);
+    // String token =  authNotifier.getToken();
+    // log(token);
     CustomSnackBar.showInfo(
       context,
       'This feature is coming soon! Stay tuned for updates.',

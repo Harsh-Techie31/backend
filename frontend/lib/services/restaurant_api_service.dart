@@ -1,10 +1,9 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:frontend/models/restaurant_model.dart';
 import 'package:http/http.dart' as http;
 import '../core/constants/app_constants.dart';
-import '../models/auth_response_model.dart';
-import '../models/user_model.dart';
 
 class RestaurantApiService {
   static final RestaurantApiService _instance = RestaurantApiService._internal();
@@ -46,7 +45,8 @@ class RestaurantApiService {
     );
 
     final body = json.decode(response.body);
-
+    log("called here to get my res");
+    log(body.toString());
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final List<dynamic> data = body["restaurants"];
       return data.map((e) => Restaurant.fromJson(e)).toList();
