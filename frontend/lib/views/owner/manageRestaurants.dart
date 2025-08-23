@@ -204,11 +204,11 @@ class ManageRestaurantsScreen extends ConsumerWidget {
                                       );
                                     },
                                   ),
-                                  // Optional: more actions like delete
-                                  // IconButton(
-                                  //   icon: const Icon(Icons.delete, color: Colors.red),
-                                  //   onPressed: () {},
-                                  // ),
+                                  //Optional: more actions like delete
+                                  IconButton(
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    onPressed: ()=> showDeleteConfirmationDialog(context: context, ref: ref,id:restaurant.id ),
+                                  ),
                                 ],
                               )
                             ],
@@ -225,4 +225,41 @@ class ManageRestaurantsScreen extends ConsumerWidget {
       ),
     );
   }
+
+
+Future<void> showDeleteConfirmationDialog({
+  required BuildContext context,
+  required WidgetRef ref,
+  required String id, // the id of the item to delete
+//  required VoidCallback onConfirm, // function to call on Yes
+  String title = "Confirm Delete",
+  String message = "Are you sure you want to delete this item?",
+}) async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false, // cannot dismiss by tapping outside
+    builder: (context) => AlertDialog(
+      title: Text(title),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // just close dialog
+          },
+          child: const Text("No"),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop(); // close dialog first
+            ref.read(restaurantProvider.notifier).deleteRestaurant(id: id) ;// call the function
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+          ),
+          child: const Text("Yes"),
+        ),
+      ],
+    ),
+  );
+}
 }

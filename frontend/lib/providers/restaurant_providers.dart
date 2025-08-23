@@ -130,6 +130,32 @@ class RestaurantNotifier extends StateNotifier<RestaurantState> {
   }
 }
 
+Future<void> deleteRestaurant({
+  required String id
+})async{
+  //state = state.copyWith(isLoading: true, errorMessage: null);
+  final currentList = state.restaurants;
+  state = state.copyWith(
+      restaurants: currentList.where((r) => r.id != id).toList(),
+      isLoading: true,
+      errorMessage: null);
+  try {
+    await _resApiService.deleteRestaurant(id: id);
+
+    log(
+      "succesfulyl returned here after deleting the restaurant"
+    );
+
+    state = state.copyWith( isLoading: false);
+  } catch (e) {
+    state = state.copyWith(
+      restaurants: currentList,
+      isLoading: false,
+      errorMessage: e.toString().replaceAll('Exception: ', ''),
+    );
+  }
+}
+
 
 
 

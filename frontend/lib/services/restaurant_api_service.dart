@@ -110,7 +110,7 @@ class RestaurantApiService {
     }
   }
 
-  Future<Restaurant> updateRestaurant({
+Future<Restaurant> updateRestaurant({
   required String id,
   String? name,
   String? description,
@@ -157,6 +157,29 @@ class RestaurantApiService {
   } else {
     throw Exception(body['message'] ?? 'Failed to update restaurant');
   }
+}
+
+
+Future<void> deleteRestaurant(
+    {required String id,}
+)async{
+  if (_authToken == null) throw Exception("Auth token not set");
+  try{
+    final uri = Uri.parse('$_baseUrl${AppConstants.restaurantEndpoint}/$id');
+  final  response = await http.delete(uri , headers: _headers);
+  final body = json.decode(response.body);
+  log("res from deletion api is $body");
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+      //final List<dynamic> data = body["restaurants"];
+      return;
+    } else {
+      throw Exception(body['message'] ?? 'An error occurred');
+    }
+  }catch(e){
+     throw Exception('Fetching restaurants failed: ${e.toString()}');
+  }
+  
+
 }
 
 
