@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/restaurant_providers.dart';
-import 'package:frontend/views/owner/addNewRestaurant.dart';
-import 'package:frontend/views/owner/editRestaurant.dart';
+import 'package:frontend/views/owner/ManageRestaurants/addNewRestaurant.dart';
+import 'package:frontend/views/owner/ManageRestaurants/editRestaurant.dart';
 
 class ManageRestaurantsScreen extends ConsumerWidget {
   const ManageRestaurantsScreen({super.key});

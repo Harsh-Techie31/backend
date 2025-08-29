@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/providers.dart';
@@ -30,17 +32,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _login() async {
+    log("entered the login func");
     if (!_formKey.currentState!.validate()) return;
-
+log("entered the login func22");
     // Get the auth notifier from Riverpod
     final authNotifier = ref.read(authProvider.notifier);
-    
+    log("entered the login func33");
     final success = await authNotifier.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
-
+  log("entered the login func44");
     if (success && mounted) {
+      log("succes logn route");
       // Get the current state to show success message
       final authState = ref.read(authProvider);
       CustomSnackBar.showSuccess(context, authState.successMessage!);
@@ -48,6 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       // Navigate to appropriate screen based on user role
       _navigateBasedOnRole(authState.currentUser!.role);
     } else if (mounted) {
+      log("login attempt failed ");
       // Get the current state to show error message
       final authState = ref.read(authProvider);
       CustomSnackBar.showError(context, authState.errorMessage!);

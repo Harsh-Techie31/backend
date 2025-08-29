@@ -1,10 +1,11 @@
 class AppConstants {
   // API Constants
-  static const String baseUrl = 'http://10.16.1.171:5000/api';
+  static const String baseUrl = 'http://192.168.137.32:5000/api';
   static const String authEndpoint = '/auth';
   static const String registerEndpoint = '/register';
   static const String loginEndpoint = '/login';
   static const String restaurantEndpoint = '/restaurant';
+  static const String menuCategoryEndpoint = '/menucat';
   
   // Storage Keys
   static const String tokenKey = 'auth_token';

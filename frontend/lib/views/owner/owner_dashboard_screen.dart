@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/restaurant_model.dart';
 import 'package:frontend/providers/restaurant_providers.dart';
-import 'package:frontend/views/owner/manageRestaurants.dart';
+import 'package:frontend/views/owner/ManageMenus/viewAllRestaurantsforMenus.dart';
+import 'package:frontend/views/owner/ManageRestaurants/manageRestaurants.dart';
 import '../../providers/providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
@@ -135,7 +136,12 @@ class OwnerDashboardScreen extends ConsumerWidget {
                   'Manage your menu items',
                   Icons.menu_book,
                   AppColors.secondary,
-                  () => _showComingSoon(context),
+                  () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ManageMenusPage(),
+              ),
+                  ),
                 ),
                 _buildActionCard(
                   context,
