@@ -1,26 +1,23 @@
+// lib/providers/menuCategories_provider.dart
+
 import 'dart:developer';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/menuCatefory-model.dart';
-
 import 'package:frontend/providers/api_provider.dart';
 import 'package:frontend/providers/storage_provider.dart';
 import 'package:frontend/services/menuCategoryApiService.dart';
 import 'package:frontend/services/storage_service.dart';
 
-/// -----------------------------
-/// STATE CLASS
-/// -----------------------------
+// --- STATE CLASS (No changes needed) ---
 class MenuCategoriesState {
   final bool isLoading;
   final List<MenuCategory> categories;
   final String? errorMessage;
-
   const MenuCategoriesState({
     this.isLoading = false,
     this.categories = const [],
     this.errorMessage,
   });
-
   MenuCategoriesState copyWith({
     bool? isLoading,
     List<MenuCategory>? categories,
@@ -34,11 +31,9 @@ class MenuCategoriesState {
   }
 }
 
-/// -----------------------------
-/// NOTIFIER CLASS
-/// -----------------------------
+// --- NOTIFIER CLASS (Updated) ---
 class MenuCategoriesNotifier extends StateNotifier<MenuCategoriesState> {
-  final Menucategoryapiservice  _apiService;
+  final Menucategoryapiservice _apiService;
   final StorageService _storageService;
 
   MenuCategoriesNotifier(this._apiService, this._storageService)
@@ -46,8 +41,9 @@ class MenuCategoriesNotifier extends StateNotifier<MenuCategoriesState> {
 
   Future<void> initialize() async {
     final token = _storageService.getToken();
-    log("[log] menu token: $token");
-    _apiService.setAuthToken(token!);
+    if (token != null) {
+      _apiService.setAuthToken(token);
+    }
   }
 
   Future<void> loadCategories(String restaurantId) async {
@@ -57,76 +53,71 @@ class MenuCategoriesNotifier extends StateNotifier<MenuCategoriesState> {
           await _apiService.getMenuCategories(restaurantId: restaurantId);
       state = state.copyWith(isLoading: false, categories: categories);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
-  Future<void> addCategory({
-    required String catname,
-    required String resID,
-    required int pos
-
-  }) async {
-    state = state.copyWith(isLoading: true);
+  Future<void> addCategory(
+      {required String catname, required String resID, required int pos}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final newCat = await _apiService.addMenuCategory(name: catname,restaurantID:resID,pos:pos);
-      log("finished calling the api call from provider for adding a new category this is the resposne : $newCat");
+      final newCat = await _apiService.addMenuCategory(
+          name: catname, restaurantID: resID, pos: pos);
       state = state.copyWith(
         isLoading: false,
         categories: [...state.categories, newCat],
       );
-      //state = state.copyWith(isLoading: false);
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 
-  Future<void> deleteCategory(String categoryId) async {
-    state = state.copyWith(isLoading: true);
+  // --- NEW: UPDATE CATEGORY METHOD ---
+  Future<void> updateCategory(
+      {required String categoryId, String? name, int? position}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      // await _apiService.deleteMenuCategory(categoryId);
-      // state = state.copyWith(
-      //   isLoading: false,
-      //   categories: state.categories.where((c) => c.id != categoryId).toList(),
-      // );
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
+      final updatedCategory = await _apiService.updateMenuCategory(
+        categoryId: categoryId,
+        name: name,
+        position: position,
+      );
       state = state.copyWith(
         isLoading: false,
-        errorMessage: e.toString(),
+        categories: state.categories.map((c) {
+          return c.id == categoryId ? updatedCategory : c;
+        }).toList(),
       );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
+  // --- UPDATED: DELETE CATEGORY METHOD ---
+  Future<void> deleteCategory(String categoryId) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await _apiService.deleteMenuCategory(categoryId: categoryId);
+      state = state.copyWith(
+        isLoading: false,
+        categories: state.categories.where((c) => c.id != categoryId).toList(),
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
 }
 
-/// -----------------------------
-/// PROVIDER
-/// -----------------------------
-// final menuCategoriesProvider =
-//     StateNotifierProvider<MenuCategoriesNotifier, MenuCategoriesState>((ref) {
-//   final apiService = ref.watch(menuCategoryApiServiceProvider);
-//   final storageService = ref.watch(storageServiceProvider);
-
-//   final notifier = MenuCategoriesNotifier(apiService, storageService);
-//   notifier.initialize();
-//   return notifier;
-// });
-
-final menuCategoriesProvider = 
+// --- PROVIDER (No changes needed) ---
+final menuCategoriesProvider =
     StateNotifierProvider.family<MenuCategoriesNotifier, MenuCategoriesState, String>(
   (ref, restaurantId) {
     final apiService = ref.watch(menuCategoryApiServiceProvider);
     final storageService = ref.watch(storageServiceProvider);
     final notifier = MenuCategoriesNotifier(apiService, storageService);
 
-    notifier.initialize();        // setup token
-    notifier.loadCategories(restaurantId); // load categories for this restaurant
+    notifier.initialize();
+    notifier.loadCategories(restaurantId);
 
     return notifier;
   },
