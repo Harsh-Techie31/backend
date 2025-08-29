@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/services/menuCategoryApiService.dart';
+import 'package:frontend/services/menuItemServices.dart';
 import 'package:frontend/services/restaurant_api_service.dart';
 import '../services/api_service.dart';
 
@@ -15,4 +16,8 @@ final restaurantApiServiceProvider = Provider<RestaurantApiService>((ref) {
 
 final menuCategoryApiServiceProvider = Provider<Menucategoryapiservice>((ref) {
   return Menucategoryapiservice();
+});
+
+final menuitemApiServiceProvider = Provider<MenuItemApiService>((ref) {
+  return MenuItemApiService();
 });

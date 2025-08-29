@@ -6,6 +6,7 @@ class AppConstants {
   static const String loginEndpoint = '/login';
   static const String restaurantEndpoint = '/restaurant';
   static const String menuCategoryEndpoint = '/menucat';
+  static const String menuItemEndpoint = '/menuitem';
   
   // Storage Keys
   static const String tokenKey = 'auth_token';

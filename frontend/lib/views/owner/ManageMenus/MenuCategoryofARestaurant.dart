@@ -1,22 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/views/owner/ManageMenus/MenuItemManagaement.dart';
+
 import 'package:frontend/models/menuCatefory-model.dart';
 import 'package:frontend/providers/menuCategories_provider.dart';
+
 
 class MenuCategoriesPage extends ConsumerWidget {
   final String restaurantID;
   final String restaurantName;
 
-  const MenuCategoriesPage({super.key, required this.restaurantID, required this.restaurantName});
+  const MenuCategoriesPage(
+      {super.key, required this.restaurantID, required this.restaurantName});
 
   @override
-  Widget build(BuildContext context , WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final categoryState = ref.watch(menuCategoriesProvider(restaurantID));
     final List<MenuCategory> categories = categoryState.categories;
 
+    // A helper to show loading or errors while the main list is being built
+    Widget buildBody() {
+      if (categoryState.isLoading && categories.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (categoryState.errorMessage != null) {
+        return Center(child: Text("Error: ${categoryState.errorMessage}"));
+      }
+      if (categories.isEmpty) {
+        return const Center(
+            child: Text("No categories found. Add one to get started!"));
+      }
+      // The main list of categories
+      return Expanded(
+        child: ListView.builder(
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 3,
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor:
+                      Theme.of(context).primaryColor.withOpacity(0.1),
+                  child: Text(
+                    category.position.toString(),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+                title: Text(
+                  category.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                // 4. MINOR FIX: Corrected the Row widget
+                subtitle: Text("Position: ${category.position}"),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 18),
+                
+                // 2. & 3. ADD NAVIGATION LOGIC HERE
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => MenuItemsPage(
+                        restaurantId: restaurantID,
+                        categoryId: category.id, // Pass the category's ID
+                        categoryName: category.name, // Pass the category's name
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text("Menu Management"),
+        title: const Text("Menu Management"),
         centerTitle: true,
       ),
       body: Padding(
@@ -27,7 +97,7 @@ class MenuCategoriesPage extends ConsumerWidget {
               "Manage menus for restaurant:",
               style: TextStyle(
                 fontSize: 22,
-                fontWeight: FontWeight.bold,               // color: Colors.teal.shade900
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 6),
@@ -36,23 +106,20 @@ class MenuCategoriesPage extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                //color: Colors.teal.shade700,
               ),
             ),
             const SizedBox(height: 20),
-
-            // Add category button
-            // Add category button
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  showAddCategoryDialog(context: context, ref: ref , resID: restaurantID);
+                  showAddCategoryDialog(
+                      context: context, ref: ref, resID: restaurantID);
                 },
                 icon: const Icon(Icons.add),
                 label: const Text("Add Category"),
                 style: ElevatedButton.styleFrom(
-                  //backgroundColor: Colors.teal,
+                  backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -61,75 +128,26 @@ class MenuCategoriesPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-
-            // List of categories
-            Expanded(
-              child: ListView.builder(
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 3,
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        //backgroundColor: Colors.teal.shade100,
-                        child: Text(
-                          category.position.toString(),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                           //
-                           // color: Colors.teal,
-                          ),
-                        ),
-                      ),
-                      title: Text(
-                        category.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      subtitle: Row(
-                        spacing: 10,
-                        children: [
-                          Text("Position: ${category.position}"),
-                          Text("Items : {menuItems.len}"),
-                        ],
-                      ),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 18),
-                      onTap: () {
-                        // TODO: open menu items under this category
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
+            buildBody(), // Use the helper to build the body
           ],
         ),
       ),
     );
   }
+}
 
-
-
-
-  void showAddCategoryDialog({
+// The dialog function remains the same
+void showAddCategoryDialog({
   required BuildContext context,
-  //required Function(String name, int position) onAdd,
   required String resID,
   required WidgetRef ref,
 }) {
-  final _nameController = TextEditingController();
-  final _positionController = TextEditingController();
+  final nameController = TextEditingController();
+  final positionController = TextEditingController();
 
   showDialog(
     context: context,
-    barrierDismissible: false, // cannot dismiss by tapping outside
+    barrierDismissible: false,
     builder: (context) {
       return AlertDialog(
         title: const Text("Add New Category"),
@@ -137,7 +155,7 @@ class MenuCategoriesPage extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
-              controller: _nameController,
+              controller: nameController,
               decoration: const InputDecoration(
                 labelText: "Category Name",
                 hintText: "Enter category name",
@@ -145,7 +163,7 @@ class MenuCategoriesPage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             TextField(
-              controller: _positionController,
+              controller: positionController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: "Position",
@@ -157,23 +175,23 @@ class MenuCategoriesPage extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // close dialog
+              Navigator.of(context).pop();
             },
             child: const Text("Cancel"),
           ),
           ElevatedButton(
-            onPressed: () async{
-              final name = _nameController.text.trim();
-              final position = int.tryParse(_positionController.text.trim());
+            onPressed: () async {
+              final name = nameController.text.trim();
+              final position = int.tryParse(positionController.text.trim());
 
               if (name.isEmpty || position == null) {
-                // Optional: show error
                 return;
               }
-              await ref.read(menuCategoriesProvider(resID).notifier).addCategory(catname: name, resID: resID, pos: position);
-        
-              Navigator.of(context).pop(); // close dialog
-              // call function passed in
+              await ref
+                  .read(menuCategoriesProvider(resID).notifier)
+                  .addCategory(catname: name, resID: resID, pos: position);
+
+              Navigator.of(context).pop();
             },
             child: const Text("Add"),
           ),
@@ -181,6 +199,4 @@ class MenuCategoriesPage extends ConsumerWidget {
       );
     },
   );
-}
-
 }
