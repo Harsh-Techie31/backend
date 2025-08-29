@@ -106,6 +106,52 @@ class MenuCategoriesNotifier extends StateNotifier<MenuCategoriesState> {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
+
+
+   Future<void> reorderCategories(int oldIndex, int newIndex) async {
+    // Store the original list in case the API call fails
+    final originalCategories = state.categories;
+
+    // Create a mutable copy of the list for reordering
+    final reorderedList = List<MenuCategory>.from(originalCategories);
+
+    // Perform the reorder operation
+    final draggedItem = reorderedList.removeAt(oldIndex);
+    // Adjust index if item is moved down the list
+    final int effectiveNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    reorderedList.insert(effectiveNewIndex, draggedItem);
+
+    // Create the payload for the API and update the local state optimistically
+    final List<Map<String, dynamic>> updates = [];
+    final List<MenuCategory> finalStateList = [];
+
+    for (int i = 0; i < reorderedList.length; i++) {
+      final category = reorderedList[i];
+      final newPosition = i + 1; // Positions are 1-based
+
+      // Add to payload for the API
+      updates.add({'id': category.id, 'position': newPosition});
+
+      // Update the category object for the new state
+      // This requires a copyWith method in your MenuCategory model
+      finalStateList.add(category.copyWith(position: newPosition));
+    }
+
+    // Optimistically update the UI
+    state = state.copyWith(categories: finalStateList);
+
+    // Call the API
+    try {
+      await _apiService.updateCategoryPositions(updates);
+    } catch (e) {
+      // If API fails, revert to the original state and show an error
+      state = state.copyWith(
+        categories: originalCategories,
+        errorMessage: "Failed to save new order: ${e.toString()}",
+      );
+    }
+  }
+
 }
 
 // --- PROVIDER (No changes needed) ---

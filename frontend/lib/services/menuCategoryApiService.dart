@@ -133,4 +133,24 @@ class Menucategoryapiservice {
       rethrow;
     }
   }
+
+
+  Future<void> updateCategoryPositions(
+      List<Map<String, dynamic>> updates) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$_baseUrl${AppConstants.menuCategoryEndpoint}/reorder'),
+        headers: _headers,
+        body: json.encode({'updates': updates}),
+      );
+
+      if (response.statusCode != 200) {
+        final body = json.decode(response.body);
+        throw Exception(body['message'] ?? 'Failed to reorder categories');
+      }
+    } catch (e) {
+      log("Error reordering categories: $e");
+      rethrow;
+    }
+  }
 }

@@ -17,7 +17,6 @@ class MenuCategory {
     required this.updatedAt,
   });
 
-  // Factory constructor to create object from JSON
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
     return MenuCategory(
       id: json['_id'] ?? '',
@@ -29,7 +28,6 @@ class MenuCategory {
     );
   }
 
-  // Convert object to JSON
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
@@ -41,15 +39,32 @@ class MenuCategory {
     };
   }
 
-  // Decode list of categories from JSON string
   static List<MenuCategory> listFromJson(String str) {
     final jsonData = json.decode(str) as List;
     return jsonData.map((item) => MenuCategory.fromJson(item)).toList();
   }
 
-  // Encode list of categories to JSON string
   static String listToJson(List<MenuCategory> categories) {
     final jsonData = categories.map((cat) => cat.toJson()).toList();
     return json.encode(jsonData);
+  }
+
+  // --- CORRECTED copyWith METHOD ---
+  MenuCategory copyWith({
+    String? id,
+    String? restaurantId,
+    String? name,
+    int? position,
+    DateTime? createdAt, // Added createdAt
+    DateTime? updatedAt, // Added updatedAt
+  }) {
+    return MenuCategory(
+      id: id ?? this.id,
+      restaurantId: restaurantId ?? this.restaurantId,
+      name: name ?? this.name,
+      position: position ?? this.position,
+      createdAt: createdAt ?? this.createdAt, // Added createdAt
+      updatedAt: updatedAt ?? this.updatedAt, // Added updatedAt
+    );
   }
 }

@@ -19,23 +19,33 @@ class MenuCategoriesPage extends ConsumerWidget {
     final categoryState = ref.watch(menuCategoriesProvider(restaurantID));
     final notifier = ref.read(menuCategoriesProvider(restaurantID).notifier);
 
+    // Sort the list by position before displaying it
+    final sortedCategories = List<MenuCategory>.from(categoryState.categories);
+    sortedCategories.sort((a, b) => a.position.compareTo(b.position));
+
     Widget buildBody() {
-      if (categoryState.isLoading && categoryState.categories.isEmpty) {
+      // FIX: Use sortedCategories for checks
+      if (categoryState.isLoading && sortedCategories.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
       if (categoryState.errorMessage != null) {
         return Center(child: Text("Error: ${categoryState.errorMessage}"));
       }
-      if (categoryState.categories.isEmpty) {
+      if (sortedCategories.isEmpty) {
         return const Center(
             child: Text("No categories found. Add one to get started!"));
       }
+
       return Expanded(
-        child: ListView.builder(
-          itemCount: categoryState.categories.length,
+        child: ReorderableListView.builder(
+          // FIX: Use sortedCategories for item count
+          itemCount: sortedCategories.length,
           itemBuilder: (context, index) {
-            final category = categoryState.categories[index];
+            // FIX: Use sortedCategories to get the item
+            final category = sortedCategories[index];
             return Card(
+              // FIX: A Unique Key is REQUIRED for ReorderableListView to work.
+              key: ValueKey(category.id),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -70,45 +80,78 @@ class MenuCategoriesPage extends ConsumerWidget {
                     ),
                   );
                 },
-                // --- NEW: POPUP MENU FOR EDIT AND DELETE ---
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      showEditCategoryDialog(
-                          context: context, ref: ref, category: category);
-                    } else if (value == 'delete') {
-                      showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                                title: const Text('Are you sure?'),
-                                content: Text(
-                                    'Do you want to delete "${category.name}"?'),
-                                actions: [
-                                  TextButton(
-                                      onPressed: () => Navigator.of(ctx).pop(),
-                                      child: const Text('No')),
-                                  TextButton(
-                                      onPressed: () {
-                                        notifier.deleteCategory(category.id);
-                                        Navigator.of(ctx).pop();
-                                      },
-                                      child: const Text('Yes')),
-                                ],
-                              ));
-                    }
-                  },
-                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                    const PopupMenuItem<String>(
-                        value: 'edit',
-                        child: ListTile(
-                            leading: Icon(Icons.edit), title: Text('Edit'))),
-                    const PopupMenuItem<String>(
-                        value: 'delete',
-                        child: ListTile(
-                            leading: Icon(Icons.delete),
-                            title: Text('Delete'))),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          showEditCategoryDialog(
+                              context: context, ref: ref, category: category);
+                        } else if (value == 'delete') {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Are you sure?'),
+                              content: Text(
+                                  'Do you want to delete "${category.name}"?'),
+                              actions: [
+                                TextButton(
+                                    onPressed: () => Navigator.of(ctx).pop(),
+                                    child: const Text('No')),
+                                TextButton(
+                                    onPressed: () {
+                                      notifier.deleteCategory(category.id);
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    child: const Text('Yes')),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      itemBuilder: (BuildContext context) => [
+                        const PopupMenuItem<String>(
+                            value: 'edit',
+                            child: ListTile(
+                                leading: Icon(Icons.edit),
+                                title: Text('Edit'))),
+                        const PopupMenuItem<String>(
+                            value: 'delete',
+                            child: ListTile(
+                                leading: Icon(Icons.delete),
+                                title: Text('Delete'))),
+                      ],
+                    ),
+                    // Use a drag handle for better UX
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Icon(Icons.drag_handle),
+                    ),
                   ],
                 ),
+              ),
+            );
+          },
+          // FIX: Implemented the onReorder callback.
+          onReorder: (oldIndex, newIndex) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Confirm Reorder'),
+                content:
+                    const Text('Are you sure you want to save this new order?'),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: const Text('Cancel')),
+                  TextButton(
+                      onPressed: () {
+                        notifier.reorderCategories(oldIndex, newIndex);
+                        Navigator.of(ctx).pop();
+                      },
+                      child: const Text('Confirm')),
+                ],
               ),
             );
           },
@@ -125,11 +168,12 @@ class MenuCategoriesPage extends ConsumerWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            Text("Manage menus for restaurant:",
+            const Text("Manage menus for restaurant:",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 6),
             Text(restaurantName,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
             const SizedBox(height: 20),
             Align(
               alignment: Alignment.centerRight,
@@ -155,10 +199,12 @@ class MenuCategoriesPage extends ConsumerWidget {
   }
 }
 
-// Add Dialog (no changes)
+// Dialog functions remain unchanged below this line
 void showAddCategoryDialog(
-    {required BuildContext context, required String resID, required WidgetRef ref}) {
-  // ... (this function remains the same as your original)
+    {required BuildContext context,
+    required String resID,
+    required WidgetRef ref}) {
+    // ... same as your code
   final nameController = TextEditingController();
   final positionController = TextEditingController();
   showDialog(
@@ -196,11 +242,11 @@ void showAddCategoryDialog(
   );
 }
 
-// --- NEW: EDIT DIALOG ---
 void showEditCategoryDialog(
     {required BuildContext context,
     required WidgetRef ref,
     required MenuCategory category}) {
+    // ... same as your code
   final nameController = TextEditingController(text: category.name);
   final positionController =
       TextEditingController(text: category.position.toString());

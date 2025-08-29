@@ -1,25 +1,23 @@
-// controllers/restaurantController.js
+// controllers/menuCatController.js
 import MenuCategory from '../models/menuCat.js';
 import Restaurant from '../models/restaurant.js';
 
 // Create menu category
 export const createMenuCategory = async (req, res) => {
+  // ... (no changes to this function)
   try {
     const { name, position, restaurantId } = req.body;
     const userId = req.user.id;
     
-    // Validate required fields
     if (!name || !position || !restaurantId) {
       return res.status(400).json({ message: 'Name, position, and restaurantId are required' });
     }
 
-    // Check if restaurant exists and user is authorized
     const restaurant = await Restaurant.findById(restaurantId);
     if (!restaurant) {
       return res.status(404).json({ message: 'Restaurant not found' });
     }
 
-    // Check if user is the restaurant owner or admin
     if (restaurant.ownerId.toString() !== userId && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Not authorized to create categories for this restaurant' });
     }
@@ -42,6 +40,7 @@ export const createMenuCategory = async (req, res) => {
 
 // Get menu categories by restaurant
 export const getMenuCategories = async (req, res) => {
+  // ... (no changes to this function)
   try {
     const { restaurantId } = req.params;
     
@@ -57,6 +56,7 @@ export const getMenuCategories = async (req, res) => {
 
 // Get menu category by ID
 export const getMenuCategoryById = async (req, res) => {
+  // ... (no changes to this function)
   try {
     const { id } = req.params;
     
@@ -74,6 +74,7 @@ export const getMenuCategoryById = async (req, res) => {
 
 // Update menu category
 export const updateMenuCategory = async (req, res) => {
+  // ... (no changes to this function)
   try {
     const { id } = req.params;
     const { name, position } = req.body;
@@ -84,7 +85,6 @@ export const updateMenuCategory = async (req, res) => {
       return res.status(404).json({ message: 'Menu category not found' });
     }
 
-    // Check if user is authorized
     const restaurant = await Restaurant.findById(menuCategory.restaurantId);
     if (restaurant.ownerId.toString() !== userId && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Not authorized to update this category' });
@@ -112,6 +112,7 @@ export const updateMenuCategory = async (req, res) => {
 
 // Delete menu category
 export const deleteMenuCategory = async (req, res) => {
+  // ... (no changes to this function)
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -121,7 +122,6 @@ export const deleteMenuCategory = async (req, res) => {
       return res.status(404).json({ message: 'Menu category not found' });
     }
 
-    // Check if user is authorized
     const restaurant = await Restaurant.findById(menuCategory.restaurantId);
     if (restaurant.ownerId.toString() !== userId && req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Not authorized to delete this category' });
@@ -132,6 +132,42 @@ export const deleteMenuCategory = async (req, res) => {
     res.status(200).json({ message: 'Menu category deleted successfully' });
   } catch (error) {
     console.error('Delete menu category error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// --- NEW: REORDER CATEGORIES CONTROLLER ---
+export const reorderMenuCategories = async (req, res) => {
+  try {
+    const { updates } = req.body;
+    const userId = req.user.id;
+
+    if (!updates || !Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: 'Invalid updates array provided.' });
+    }
+
+    // Authorization check: Ensure user owns the restaurant for these categories
+    const firstCategory = await MenuCategory.findById(updates[0].id);
+    if (!firstCategory) {
+      return res.status(404).json({ message: 'One or more categories not found.' });
+    }
+    const restaurant = await Restaurant.findById(firstCategory.restaurantId);
+    if (restaurant.ownerId.toString() !== userId && req.user.role !== 'ADMIN') {
+      return res.status(403).json({ message: 'Not authorized to reorder these categories.' });
+    }
+
+    // Create an array of update promises to run in parallel
+    const updatePromises = updates.map(update => 
+      MenuCategory.findByIdAndUpdate(update.id, { position: update.position })
+    );
+
+    // Wait for all updates to complete
+    await Promise.all(updatePromises);
+
+    res.status(200).json({ message: 'Categories reordered successfully' });
+
+  } catch (error) {
+    console.error('Reorder menu categories error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
