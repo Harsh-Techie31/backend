@@ -2,205 +2,306 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/models/restaurant_model.dart';
+import 'package:frontend/models/user_model.dart';
 import 'package:frontend/providers/restaurant_providers.dart';
 import 'package:frontend/views/owner/ManageMenus/viewAllRestaurantsforMenus.dart';
 import 'package:frontend/views/owner/ManageRestaurants/manageRestaurants.dart';
+import 'package:frontend/views/owner/profileScreen.dart';
 import '../../providers/providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../widgets/custom_snackbar.dart';
 
-class OwnerDashboardScreen extends ConsumerWidget {
+class OwnerDashboardScreen extends ConsumerStatefulWidget {
   const OwnerDashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OwnerDashboardScreen> createState() => _OwnerDashboardScreenState();
+}
+
+class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
+  bool _isAcceptingOrders = true; // State for the toggle
+
+  @override
+  Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final resState = ref.watch(restaurantProvider);
     final user = authState.currentUser;
-    final List<Restaurant> res = resState.restaurants;
+    // final List<Restaurant> res = resState.restaurants; // Not used directly, but length is
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
-          'Restaurant Owner Dashboard',
+          'Dashboard',
           style: AppTextStyles.h5.copyWith(color: AppColors.textWhite),
         ),
         backgroundColor: AppColors.primary,
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: AppColors.textWhite),
+            onPressed: () => _showComingSoon(context),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout, color: AppColors.textWhite),
             onPressed: () => _logout(context, ref),
           ),
         ],
       ),
+      drawer: _buildAppDrawer(context, ref, user),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// Welcome Section
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryLight],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadow.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.textWhite.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.restaurant,
-                      color: AppColors.textWhite,
-                      size: 36,
-                    ),
-                  ),
-                  const SizedBox(width: 18),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back!',
-                        style: AppTextStyles.h4.copyWith(
-                          color: AppColors.textWhite,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        user?.name ?? 'Restaurant Owner',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppColors.textWhite.withOpacity(0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            /// 1. Compact Header & Actionable Toggle
+            _buildDashboardHeader(user?.name ?? 'Owner'),
+            const SizedBox(height: 24),
 
-            const SizedBox(height: 32),
+            /// 2. Key Performance Indicators (KPIs)
+            _buildStatsGrid(),
+            const SizedBox(height: 24),
 
-            /// Quick Actions
+            /// 3. Sales Overview Chart (Placeholder)
+            _buildSalesChart(),
+            const SizedBox(height: 24),
+
+            /// 4. Quick Actions
             Text(
               'Quick Actions',
-              style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 20),
-
-            GridView.extent(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              //crossAxisCount: 2,
-              maxCrossAxisExtent: 200,
-              crossAxisSpacing: 20,
-              mainAxisSpacing: 20,
-              childAspectRatio: 0.8,
-              children: [
-                _buildActionCard(
-                  context,
-                  'Manage Restaurant',
-                  'Add or edit restaurant details',
-                  Icons.store,
-                  AppColors.primary,
-                  () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ManageRestaurantsScreen(),
-              ),
-                  ),
-                ),
-                _buildActionCard(
-                  context,
-                  'Menu Management',
-                  'Manage your menu items',
-                  Icons.menu_book,
-                  AppColors.secondary,
-                  () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ManageMenusPage(),
-              ),
-                  ),
-                ),
-                _buildActionCard(
-                  context,
-                  'Orders',
-                  'Track and manage orders',
-                  Icons.receipt_long,
-                  AppColors.success,
-                  () => _showComingSoon(context),
-                ),
-                _buildActionCard(
-                  context,
-                  'Analytics',
-                  'Track performance',
-                  Icons.analytics,
-                  AppColors.info,
-                  () => _showComingSoon(context),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            /// Account Info
-            Text(
-              'Account Information',
-              style: AppTextStyles.h5.copyWith(fontWeight: FontWeight.w600),
+              style: AppTextStyles.h5.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
+            _buildQuickActionsGrid(resState.restaurants.length),
+            const SizedBox(height: 24),
 
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.shadowLight.withOpacity(0.4),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  _buildInfoTile(Icons.person, 'Name', user?.name ?? 'N/A'),
-                  _buildDivider(),
-                  _buildInfoTile(Icons.store_mall_directory, 'Restaurants', res.length.toString()),
-                  _buildDivider(),
-                  _buildInfoTile(Icons.email, 'Email', user?.email ?? 'N/A'),
-                  _buildDivider(),
-                  _buildInfoTile(Icons.phone, 'Phone', user?.phone ?? 'Not provided'),
-                  _buildDivider(),
-                  _buildInfoTile(Icons.verified_user, 'Role', user?.role ?? 'N/A'),
-                ],
-              ),
-            ),
+            /// Removed 'Account Information' as it's secondary.
+            /// This info is better suited for a separate 'Profile' or 'Settings' page.
           ],
         ),
       ),
+    );
+  }
+
+  /// --- UI Sections ---
+
+  Widget _buildDashboardHeader(String userName) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Welcome, $userName 👋',
+                style: AppTextStyles.h6.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Here is your business snapshot.',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          Column(
+            children: [
+              Text(
+                'Accepting Orders',
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: _isAcceptingOrders ? AppColors.success : AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Switch(
+                value: _isAcceptingOrders,
+                onChanged: (value) {
+                  setState(() {
+                    _isAcceptingOrders = value;
+                  });
+                  CustomSnackBar.showInfo(context,
+                      "Restaurant is now ${_isAcceptingOrders ? 'ONLINE' : 'OFFLINE'}");
+                },
+                activeTrackColor: AppColors.success.withOpacity(0.5),
+                activeColor: AppColors.success,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.5,
+      children: [
+        _buildStatCard(
+          'Today\'s Revenue',
+          '₹ 8,520', // Example Data
+          Icons.account_balance_wallet,
+          AppColors.primary,
+        ),
+        _buildStatCard(
+          'Today\'s Orders',
+          '42', // Example Data
+          Icons.receipt_long,
+          AppColors.secondary,
+        ),
+        _buildStatCard(
+          'Pending Orders',
+          '3', // Example Data
+          Icons.pending_actions,
+          AppColors.warning,
+        ),
+        _buildStatCard(
+          'Avg. Rating',
+          '4.5 ★', // Example Data
+          Icons.star,
+          AppColors.info,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 8,
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Icon(icon, color: color, size: 28),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: AppTextStyles.h4.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSalesChart() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Weekly Sales',
+          style: AppTextStyles.h5.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          height: 180,
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow.withOpacity(0.05),
+                blurRadius: 8,
+              )
+            ],
+          ),
+          child: const Center(
+            child: Text(
+              // TODO: Integrate a chart library like 'fl_chart' or 'charts_flutter' here.
+              'Sales Chart Placeholder',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionsGrid(int restaurantCount) {
+    return GridView.extent(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      maxCrossAxisExtent: 180,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.1,
+      children: [
+        _buildActionCard(
+          context,
+          'View Orders',
+          'Manage incoming orders',
+          Icons.receipt_long,
+          AppColors.success,
+          () => _showComingSoon(context),
+        ),
+        _buildActionCard(
+          context,
+          'Manage Menu',
+          'Add or edit items',
+          Icons.menu_book,
+          AppColors.secondary,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ManageMenusPage()),
+          ),
+        ),
+        _buildActionCard(
+          context,
+          'My Restaurants',
+          '$restaurantCount registered',
+          Icons.store,
+          AppColors.primary,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ManageRestaurantsScreen()),
+          ),
+        ),
+        _buildActionCard(
+          context,
+          'Analytics',
+          'View performance',
+          Icons.analytics,
+          AppColors.info,
+          () => _showComingSoon(context),
+        ),
+      ],
     );
   }
 
@@ -218,41 +319,39 @@ class OwnerDashboardScreen extends ConsumerWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowLight.withOpacity(0.4),
+              color: AppColors.shadow.withOpacity(0.05),
               blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
+            )
           ],
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 34),
+              child: Icon(icon, color: color, size: 28),
             ),
-            const SizedBox(height: 14),
+            const Spacer(),
             Text(
               title,
-              style: AppTextStyles.h6.copyWith(fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
+              style: AppTextStyles.h6.copyWith(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               description,
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ],
@@ -260,30 +359,6 @@ class OwnerDashboardScreen extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildInfoTile(IconData icon, String label, String value) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(
-        label,
-        style: AppTextStyles.bodyMedium.copyWith(
-          fontWeight: FontWeight.w600,
-          color: AppColors.textSecondary,
-        ),
-      ),
-      subtitle: Text(value, style: AppTextStyles.bodyMedium),
-      dense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-    );
-  }
-
-  Widget _buildDivider() => Divider(
-        height: 1,
-        thickness: 0.6,
-        color: AppColors.border.withOpacity(0.6),
-        indent: 20,
-        endIndent: 20,
-      );
 
   /// --- Snackbars & Logout ---
 
@@ -294,24 +369,86 @@ class OwnerDashboardScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon1(BuildContext context, WidgetRef ref) async {
-    final authNotifier = ref.read(authProvider.notifier);
-    CustomSnackBar.showInfo(
-      context,
-      'This feature is coming soon! Stay tuned for updates.',
-    );
-  }
-
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
-    log("reached here");
     final authNotifier = ref.read(authProvider.notifier);
     await authNotifier.logout();
-    log("reached here1");
     if (context.mounted) {
       final authState = ref.read(authProvider);
-      CustomSnackBar.showSuccess(context, authState.successMessage!);
+      CustomSnackBar.showSuccess(context, authState.successMessage ?? 'Logged out successfully!');
       Navigator.pushReplacementNamed(context, '/login');
     }
-    log("reached here2");
   }
-}
+
+
+Widget _buildAppDrawer(BuildContext context, WidgetRef ref, UserModel? user) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: Colors.white,
+                  child: Icon(Icons.person, size: 30, color: AppColors.primary),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  user?.name ?? 'Restaurant Owner',
+                  style: AppTextStyles.h6.copyWith(color: AppColors.textWhite),
+                ),
+                Text(
+                  user?.email ?? 'No email',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textWhite.withOpacity(0.8)),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dashboard, color: AppColors.primary),
+            title: const Text('Dashboard'),
+            onTap: () {
+              Navigator.pop(context); // Close the drawer
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.person_outline, color: AppColors.primary),
+            title: const Text('My Profile'),
+            onTap: () {
+              Navigator.pop(context); // Close drawer before navigating
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, color: AppColors.primary),
+            title: const Text('Settings'),
+            onTap: () {
+              _showComingSoon(context);
+            },
+          ),
+          const Divider(indent: 16, endIndent: 16),
+          ListTile(
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: const Text('Logout'),
+            onTap: () {
+              Navigator.pop(context);
+              _logout(context, ref);
+            },
+          ),
+        ],
+      ),
+    );
+  }}
