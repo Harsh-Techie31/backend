@@ -63,9 +63,7 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
             _buildStatsGrid(),
             const SizedBox(height: 24),
 
-            /// 3. Sales Overview Chart (Placeholder)
-            _buildSalesChart(),
-            const SizedBox(height: 24),
+            
 
             /// 4. Quick Actions
             Text(
@@ -76,8 +74,11 @@ class _OwnerDashboardScreenState extends ConsumerState<OwnerDashboardScreen> {
             _buildQuickActionsGrid(resState.restaurants.length),
             const SizedBox(height: 24),
 
-            /// Removed 'Account Information' as it's secondary.
-            /// This info is better suited for a separate 'Profile' or 'Settings' page.
+            /// 3. Sales Overview Chart (Placeholder)
+            _buildSalesChart(),
+            const SizedBox(height: 24),
+
+          
           ],
         ),
       ),

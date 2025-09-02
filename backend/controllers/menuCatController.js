@@ -72,7 +72,7 @@ export const getMenuCategoryById = async (req, res) => {
   }
 };
 
-// Update menu category
+
 export const updateMenuCategory = async (req, res) => {
   // ... (no changes to this function)
   try {
@@ -110,7 +110,7 @@ export const updateMenuCategory = async (req, res) => {
   }
 };
 
-// Delete menu category
+
 export const deleteMenuCategory = async (req, res) => {
   // ... (no changes to this function)
   try {
@@ -136,7 +136,7 @@ export const deleteMenuCategory = async (req, res) => {
   }
 };
 
-// --- NEW: REORDER CATEGORIES CONTROLLER ---
+
 export const reorderMenuCategories = async (req, res) => {
   try {
     const { updates } = req.body;
@@ -146,7 +146,6 @@ export const reorderMenuCategories = async (req, res) => {
       return res.status(400).json({ message: 'Invalid updates array provided.' });
     }
 
-    // Authorization check: Ensure user owns the restaurant for these categories
     const firstCategory = await MenuCategory.findById(updates[0].id);
     if (!firstCategory) {
       return res.status(404).json({ message: 'One or more categories not found.' });
@@ -156,12 +155,11 @@ export const reorderMenuCategories = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to reorder these categories.' });
     }
 
-    // Create an array of update promises to run in parallel
     const updatePromises = updates.map(update => 
       MenuCategory.findByIdAndUpdate(update.id, { position: update.position })
     );
 
-    // Wait for all updates to complete
+
     await Promise.all(updatePromises);
 
     res.status(200).json({ message: 'Categories reordered successfully' });
